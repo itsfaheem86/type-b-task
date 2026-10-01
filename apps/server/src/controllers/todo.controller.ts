@@ -25,3 +25,18 @@ export async function updateTodo(req: Request<{ id: string }>, res: Response) {
 
   res.status(200).json(todo);
 }
+
+export async function toggleTodoDone(req: Request<{ id: string }>, res: Response) {
+  const todo = await Todo.findByIdAndUpdate(
+    req.params.id,
+    [{ $set: { done: { $not: "$done" } } }],
+    { returnDocument: "after", updatePipeline: true },
+  );
+
+  if (!todo) {
+    res.status(404).json({ message: "Todo not found" });
+    return;
+  }
+
+  res.status(200).json(todo);
+}
