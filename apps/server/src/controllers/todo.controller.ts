@@ -40,3 +40,14 @@ export async function toggleTodoDone(req: Request<{ id: string }>, res: Response
 
   res.status(200).json(todo);
 }
+
+export async function deleteTodo(req: Request<{ id: string }>, res: Response) {
+  const todo = await Todo.findByIdAndDelete(req.params.id);
+
+  if (!todo) {
+    res.status(404).json({ message: "Todo not found" });
+    return;
+  }
+
+  res.status(204).end();
+}
