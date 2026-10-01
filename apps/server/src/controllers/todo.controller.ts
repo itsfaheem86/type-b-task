@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import Todo from "../models/todo.model.js";
+import { HttpError } from "../utils/http-error.js";
 
 export async function getTodos(_req: Request, res: Response) {
   const todos = await Todo.find().sort({ createdAt: -1 });
@@ -19,8 +20,7 @@ export async function updateTodo(req: Request<{ id: string }>, res: Response) {
   });
 
   if (!todo) {
-    res.status(404).json({ message: "Todo not found" });
-    return;
+    throw new HttpError(404, "Todo not found");
   }
 
   res.status(200).json(todo);
@@ -34,8 +34,7 @@ export async function toggleTodoDone(req: Request<{ id: string }>, res: Response
   );
 
   if (!todo) {
-    res.status(404).json({ message: "Todo not found" });
-    return;
+    throw new HttpError(404, "Todo not found");
   }
 
   res.status(200).json(todo);
@@ -45,8 +44,7 @@ export async function deleteTodo(req: Request<{ id: string }>, res: Response) {
   const todo = await Todo.findByIdAndDelete(req.params.id);
 
   if (!todo) {
-    res.status(404).json({ message: "Todo not found" });
-    return;
+    throw new HttpError(404, "Todo not found");
   }
 
   res.status(204).end();

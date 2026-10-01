@@ -1,20 +1,18 @@
 import type { NextFunction, Request, Response } from "express";
 import { isObjectIdOrHexString } from "mongoose";
 import type { ZodType } from "zod";
+import { HttpError } from "../utils/http-error.js";
 
 export function validateBody(schema: ZodType) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.body ?? {});
 
     if (!result.success) {
-      res.status(400).json({
-        message: "Validation failed",
-        errors: result.error.issues.map((issue) => ({
-          field: issue.path.join("."),
-          message: issue.message,
-        })),
-      });
-      return;
+      const errors = result.error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      }));
+      throw new HttpError(400, "Validation failed", errors);
     }
 
     req.body = result.data;
@@ -22,10 +20,9 @@ export function validateBody(schema: ZodType) {
   };
 }
 
-export function validateId(req: Request, res: Response, next: NextFunction) {
+export function validateId(req: Request, _res: Response, next: NextFunction) {
   if (!isObjectIdOrHexString(req.params.id)) {
-    res.status(400).json({ message: "Invalid todo id" });
-    return;
+    throw new HttpError(400, "Invalid todo id");
   }
 
   next();
