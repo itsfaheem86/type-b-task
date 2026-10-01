@@ -11,3 +11,17 @@ export async function createTodo(req: Request, res: Response) {
   const todo = await Todo.create({ title, description });
   res.status(201).json(todo);
 }
+
+export async function updateTodo(req: Request<{ id: string }>, res: Response) {
+  const todo = await Todo.findByIdAndUpdate(req.params.id, req.body, {
+    returnDocument: "after",
+    runValidators: true,
+  });
+
+  if (!todo) {
+    res.status(404).json({ message: "Todo not found" });
+    return;
+  }
+
+  res.status(200).json(todo);
+}
