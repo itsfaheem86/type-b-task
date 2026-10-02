@@ -67,6 +67,30 @@ export const todosApi = api.injectEndpoints({
       },
     }),
 
+    toggleTodo: build.mutation<Todo, string>({
+      query: (id) => ({ url: `todos/${id}/done`, method: "PATCH" }),
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          todosApi.util.updateQueryData("getTodos", undefined, (draft) => {
+            const todo = draft.find((item) => item._id === id);
+            if (todo) todo.done = !todo.done;
+          }),
+        );
+
+        try {
+          const { data: toggled } = await queryFulfilled;
+          dispatch(
+            todosApi.util.updateQueryData("getTodos", undefined, (draft) => {
+              const index = draft.findIndex((item) => item._id === id);
+              if (index !== -1) draft[index] = toggled;
+            }),
+          );
+        } catch {
+          patch.undo();
+        }
+      },
+    }),
+
     deleteTodo: build.mutation<void, string>({
       query: (id) => ({ url: `todos/${id}`, method: "DELETE" }),
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
@@ -90,5 +114,6 @@ export const {
   useGetTodosQuery,
   useCreateTodoMutation,
   useUpdateTodoMutation,
+  useToggleTodoMutation,
   useDeleteTodoMutation,
 } = todosApi;

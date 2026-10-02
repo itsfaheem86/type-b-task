@@ -1,9 +1,24 @@
 import { PencilIcon, Trash2Icon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
+import { getErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
-import { isTempId } from "../todosApi";
+import { isTempId, useToggleTodoMutation } from "../todosApi";
 import type { Todo } from "../types";
+
+const createdAtFormat = new Intl.DateTimeFormat(undefined, {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
 
 interface TodoItemProps {
   todo: Todo;
@@ -13,6 +28,15 @@ interface TodoItemProps {
 
 export function TodoItem({ todo, onEdit, onDelete }: TodoItemProps) {
   const isPending = isTempId(todo._id);
+  const [toggleTodo, { isLoading: isToggling }] = useToggleTodoMutation();
+
+  async function handleToggle() {
+    try {
+      await toggleTodo(todo._id).unwrap();
+    } catch (error) {
+      toast.error("Couldn't update todo", { description: getErrorMessage(error) });
+    }
+  }
 
   return (
     <Item
@@ -21,6 +45,16 @@ export function TodoItem({ todo, onEdit, onDelete }: TodoItemProps) {
       aria-busy={isPending || undefined}
       className={cn("transition-opacity", todo.done && "opacity-60", isPending && "animate-pulse")}
     >
+      <ItemMedia className="self-start pt-0.5">
+        <Checkbox
+          checked={todo.done}
+          onCheckedChange={handleToggle}
+          disabled={isPending || isToggling}
+          aria-label={
+            todo.done ? `Mark "${todo.title}" as not done` : `Mark "${todo.title}" as done`
+          }
+        />
+      </ItemMedia>
       <ItemContent className="min-w-0">
         <ItemTitle
           className={cn(
@@ -35,6 +69,10 @@ export function TodoItem({ todo, onEdit, onDelete }: TodoItemProps) {
             {todo.description}
           </ItemDescription>
         )}
+        <p className="text-xs text-muted-foreground">
+          Created{" "}
+          <time dateTime={todo.createdAt}>{createdAtFormat.format(new Date(todo.createdAt))}</time>
+        </p>
       </ItemContent>
       <ItemActions>
         <Button
