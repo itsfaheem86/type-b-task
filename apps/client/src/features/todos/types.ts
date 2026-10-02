@@ -16,3 +16,9 @@ export interface CreateTodoInput {
   title: string;
   description?: string;
 }
+
+export interface UpdateTodoInput {
+  id: string;
+  title: string;
+  description: string;
+}
