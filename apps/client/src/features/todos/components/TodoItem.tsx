@@ -1,13 +1,17 @@
-import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
+import { PencilIcon, Trash2Icon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
 import { isTempId } from "../todosApi";
 import type { Todo } from "../types";
 
 interface TodoItemProps {
   todo: Todo;
+  onEdit: (todo: Todo) => void;
+  onDelete: (todo: Todo) => void;
 }
 
-export function TodoItem({ todo }: TodoItemProps) {
+export function TodoItem({ todo, onEdit, onDelete }: TodoItemProps) {
   const isPending = isTempId(todo._id);
 
   return (
@@ -32,6 +36,29 @@ export function TodoItem({ todo }: TodoItemProps) {
           </ItemDescription>
         )}
       </ItemContent>
+      <ItemActions>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={`Edit "${todo.title}"`}
+          aria-haspopup="dialog"
+          disabled={isPending}
+          onClick={() => onEdit(todo)}
+        >
+          <PencilIcon />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={`Delete "${todo.title}"`}
+          aria-haspopup="dialog"
+          disabled={isPending}
+          onClick={() => onDelete(todo)}
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2Icon />
+        </Button>
+      </ItemActions>
     </Item>
   );
 }

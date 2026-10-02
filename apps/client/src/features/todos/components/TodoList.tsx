@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CircleAlertIcon, ListTodoIcon, RotateCwIcon } from "lucide-react";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import {
   Empty,
+  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
@@ -21,10 +23,28 @@ import { Item, ItemContent, ItemGroup } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getErrorMessage } from "@/lib/api-error";
 import { useGetTodosQuery } from "../todosApi";
+import type { Todo } from "../types";
+import { DeleteTodoDialog } from "./DeleteTodoDialog";
+import { NewTodoButton } from "./NewTodoButton";
+import { TodoDialog } from "./TodoDialog";
 import { TodoItem } from "./TodoItem";
 
 export function TodoList() {
   const { data: todos, isLoading, isError, error, refetch, isFetching } = useGetTodosQuery();
+  const [todoToEdit, setTodoToEdit] = useState<Todo | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  function openEdit(todo: Todo) {
+    setTodoToEdit(todo);
+    setIsEditOpen(true);
+  }
+
+  function confirmDelete(todo: Todo) {
+    setTodoToDelete(todo);
+    setIsDeleteOpen(true);
+  }
 
   const remaining = todos?.filter((todo) => !todo.done).length ?? 0;
 
@@ -40,6 +60,10 @@ export function TodoList() {
         )}
       </CardHeader>
       <CardContent>{renderContent()}</CardContent>
+      {todoToEdit && (
+        <TodoDialog todo={todoToEdit} open={isEditOpen} onOpenChange={setIsEditOpen} />
+      )}
+      <DeleteTodoDialog todo={todoToDelete} open={isDeleteOpen} onOpenChange={setIsDeleteOpen} />
     </Card>
   );
 
@@ -83,8 +107,11 @@ export function TodoList() {
               <ListTodoIcon />
             </EmptyMedia>
             <EmptyTitle>No todos yet</EmptyTitle>
-            <EmptyDescription>Add your first todo using the form.</EmptyDescription>
+            <EmptyDescription>Create your first todo to get started.</EmptyDescription>
           </EmptyHeader>
+          <EmptyContent>
+            <NewTodoButton />
+          </EmptyContent>
         </Empty>
       );
     }
@@ -92,7 +119,7 @@ export function TodoList() {
     return (
       <ItemGroup>
         {todos.map((todo) => (
-          <TodoItem key={todo._id} todo={todo} />
+          <TodoItem key={todo._id} todo={todo} onEdit={openEdit} onDelete={confirmDelete} />
         ))}
       </ItemGroup>
     );
