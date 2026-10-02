@@ -62,11 +62,14 @@ function TodoDialogForm({ todo, onDone }: TodoDialogFormProps) {
     } satisfies TodoFormValues,
   });
 
+  // Close the dialog as soon as the mutation is dispatched: the cache is patched
+  // optimistically, so waiting for the server would hide the instant update.
   const onSubmit = handleSubmit(async ({ title, description }) => {
     if (todo) {
+      const request = updateTodo({ id: todo._id, title, description });
+      onDone();
       try {
-        const updated = await updateTodo({ id: todo._id, title, description }).unwrap();
-        onDone();
+        const updated = await request.unwrap();
         toast.success("Todo updated", { description: updated.title });
       } catch (error) {
         toast.error("Couldn't update todo", { description: getErrorMessage(error) });
@@ -74,9 +77,10 @@ function TodoDialogForm({ todo, onDone }: TodoDialogFormProps) {
       return;
     }
 
+    const request = createTodo({ title, ...(description && { description }) });
+    onDone();
     try {
-      const created = await createTodo({ title, ...(description && { description }) }).unwrap();
-      onDone();
+      const created = await request.unwrap();
       toast.success("Todo added", { description: created.title });
     } catch (error) {
       toast.error("Couldn't add todo", { description: getErrorMessage(error) });
