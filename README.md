@@ -1,159 +1,75 @@
-# Turborepo starter
+# TODO App
 
-This Turborepo starter is maintained by the Turborepo core team.
+A full-stack TODO app: a React client and an Express + MongoDB API, organised as a pnpm + Turborepo monorepo.
 
-## Using this example
+You can list, create, edit, complete and delete todos. Every change appears instantly through optimistic updates and is rolled back if the server rejects it.
 
-Run the following command:
+## Stack
 
-```sh
-npx create-turbo@latest
+| Part     | Technology                                                                                                 |
+| -------- | ---------------------------------------------------------------------------------------------------------- |
+| Client   | React 19, Vite, TypeScript, Redux Toolkit Query, shadcn/ui, Tailwind CSS v4, react-hook-form + zod, sonner |
+| Server   | Node.js, Express 5, TypeScript, Mongoose 9, zod                                                            |
+| Database | MongoDB (local or Atlas)                                                                                   |
+| Tooling  | pnpm workspaces, Turborepo, ESLint (typescript-eslint), Prettier                                           |
+
+## Repository layout
+
+```
+.
+├── apps/
+│   ├── client/                 # React app → see apps/client/README.md
+│   └── server/                 # Express API → see apps/server/README.md
+├── packages/
+│   ├── eslint-config/          # shared ESLint configs
+│   └── typescript-config/      # shared tsconfig base
+├── turbo.json                  # Turborepo task pipeline
+└── pnpm-workspace.yaml
 ```
 
-## What's inside?
+## Quick start
 
-This Turborepo includes the following packages/apps:
+**Prerequisites:** Node.js 22.12+, pnpm 11 (`corepack enable`), and a MongoDB instance (local or Atlas).
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+pnpm install
+cp apps/server/.env.example apps/server/.env   # set MONGODB_URI if yours differs
+pnpm dev
 ```
 
-Without global `turbo`, use your package manager:
+- Client: http://localhost:5173
+- API: http://localhost:5000/api/todos
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm exec turbo build
-pnpm exec turbo build
-```
+`pnpm dev` starts both apps in parallel. The client's `.env` is optional: by default it calls the API at `http://localhost:5000/api`.
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Scripts
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Run these from the repository root. Turborepo runs each one in every app that defines it and caches the results.
 
-```sh
-turbo build --filter=docs
-```
+| Command             | What it does                                |
+| ------------------- | ------------------------------------------- |
+| `pnpm dev`          | Starts the client and the API in watch mode |
+| `pnpm build`        | Builds both apps                            |
+| `pnpm lint`         | Runs ESLint in both apps                    |
+| `pnpm check-types`  | Type-checks both apps                       |
+| `pnpm format`       | Formats the repo with Prettier              |
+| `pnpm format:check` | Checks formatting without changing files    |
 
-Without global `turbo`:
+To run a single app, use a filter: `pnpm --filter server dev` or `pnpm --filter client dev`.
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+## API
 
-### Develop
+| Method | Endpoint              | Description                         |
+| ------ | --------------------- | ----------------------------------- |
+| GET    | `/api/todos`          | Get all todos                       |
+| POST   | `/api/todos`          | Create a todo                       |
+| PUT    | `/api/todos/:id`      | Update a todo's title / description |
+| PATCH  | `/api/todos/:id/done` | Toggle a todo's done status         |
+| DELETE | `/api/todos/:id`      | Delete a todo                       |
 
-To develop all apps and packages, run the following command:
+Request and response details, validation rules and the error format are in [`apps/server/README.md`](apps/server/README.md).
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## More documentation
 
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+- [`apps/server/README.md`](apps/server/README.md): server setup, MongoDB connection (local and Atlas), API reference, assumptions and limitations
+- [`apps/client/README.md`](apps/client/README.md): client setup, environment variables, architecture, assumptions and limitations
