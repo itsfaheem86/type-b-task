@@ -6,3 +6,4 @@ export const todoFormSchema = z.object({
 });
 
 export type TodoFormValues = z.input<typeof todoFormSchema>;
+export type TodoFormOutput = z.output<typeof todoFormSchema>;
